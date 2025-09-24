@@ -32,18 +32,13 @@ class PortfolioCarousel {
     constructor(containerId, data) {
         this.container = document.getElementById(containerId).querySelector('.container');
         if (!this.container) return;
-
         this.originalData = data;
         this.originalDataLength = this.originalData.length;
         this.currentItemIndex = 0;
         this.isTransitioning = false;
-
-        // --- NOVO: Variáveis para controlar o swipe ---
         this.touchStartX = 0;
-        this.touchMoveX = 0;
         this.isDragging = false;
-        this.dragThreshold = 50; // Mínimo de pixels para considerar um swipe
-
+        this.dragThreshold = 50;
         this.init();
         window.addEventListener('resize', this.debounce(() => this.rebuild(), 250));
     }
@@ -52,10 +47,9 @@ class PortfolioCarousel {
         this.itemsPerPage = this.getItemsPerPage();
         this.data = [...this.originalData, ...this.originalData, ...this.originalData];
         this.currentItemIndex = this.originalDataLength;
-
         this.render();
         this.bindEvents();
-        this.updatePosition(false); 
+        this.updatePosition(false);
         this.startAutoPlay();
     }
     
@@ -101,7 +95,6 @@ class PortfolioCarousel {
                 </div>
             </div>`;
         this.container.innerHTML = carouselHTML;
-
         this.carousel = document.getElementById('portfolioCarousel');
         this.viewport = document.getElementById('portfolio-viewport');
         this.dots = this.container.querySelectorAll('.nav-dot');
@@ -112,75 +105,54 @@ class PortfolioCarousel {
     bindEvents() {
         this.prevBtn.addEventListener('click', () => this.moveSlide('prev'));
         this.nextBtn.addEventListener('click', () => this.moveSlide('next'));
-        
         this.carousel.addEventListener('transitionend', () => this.handleTransitionEnd());
-
         this.dots.forEach(dot => {
             dot.addEventListener('click', (e) => {
                 const index = parseInt(e.target.dataset.index);
                 this.goToSlide(index);
             });
         });
-
-        this.container.addEventListener('mouseenter', () => this.stopAutoPlay());
-        this.container.addEventListener('mouseleave', () => this.startAutoPlay());
-        
-        // --- NOVO: Adiciona os eventos de toque ---
         this.addTouchSupport();
     }
 
-    // --- NOVO: Método inteiro para o swipe ---
     addTouchSupport() {
-        // Só adiciona a função de swipe se for mobile (1 item por página)
         if (this.itemsPerPage > 1) return;
-
         this.carousel.addEventListener('touchstart', (e) => this.handleTouchStart(e));
         this.carousel.addEventListener('touchmove', (e) => this.handleTouchMove(e));
-        this.carousel.addEventListener('touchend', () => this.handleTouchEnd());
+        this.carousel.addEventListener('touchend', (e) => this.handleTouchEnd(e));
     }
 
     handleTouchStart(e) {
         this.isDragging = true;
         this.touchStartX = e.touches[0].clientX;
-        this.carousel.style.transition = 'none'; // Remove a transição para o arraste ser suave
+        this.carousel.style.transition = 'none'; 
         this.stopAutoPlay();
     }
 
     handleTouchMove(e) {
         if (!this.isDragging) return;
-        
-        this.touchMoveX = e.touches[0].clientX;
-        const dragDistance = this.touchMoveX - this.touchStartX;
-        
-        // Calcula a posição atual e move o carrossel junto com o dedo
-        const currentTranslate = - (this.currentItemIndex * this.viewport.offsetWidth);
+        const touchMoveX = e.touches[0].clientX;
+        const dragDistance = touchMoveX - this.touchStartX;
+        const currentTranslate = -(this.currentItemIndex * this.viewport.offsetWidth);
         this.carousel.style.transform = `translateX(${currentTranslate + dragDistance}px)`;
     }
 
-    handleTouchEnd() {
+    handleTouchEnd(e) {
         if (!this.isDragging) return;
-
-        const dragDistance = this.touchMoveX - this.touchStartX;
+        const touchEndX = e.changedTouches[0].clientX;
+        const dragDistance = touchEndX - this.touchStartX;
         this.isDragging = false;
-        
-        // Se o arraste foi maior que o limite (threshold)
         if (Math.abs(dragDistance) > this.dragThreshold) {
             if (dragDistance < 0) {
-                // Arrastou para a esquerda -> próximo slide
                 this.moveSlide('next');
             } else {
-                // Arrastou para a direita -> slide anterior
                 this.moveSlide('prev');
             }
         } else {
-            // Se o arraste foi muito curto, volta para a posição original
             this.updatePosition(true);
         }
-
-        // Reinicia o autoplay somente quando o usuário solta o dedo
         this.startAutoPlay();
     }
-    // --- FIM DOS MÉTODOS DE SWIPE ---
 
     handleTransitionEnd() {
         this.isTransitioning = false;
@@ -204,38 +176,45 @@ class PortfolioCarousel {
     goToSlide(index) {
         if (this.isTransitioning) return;
         this.currentItemIndex = index + this.originalDataLength;
-        this.updatePosition();
-        this.resetAutoPlay();
+        this.moveSlide();
     }
 
     moveSlide(direction) {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
-        this.currentItemIndex += direction === 'next' ? 1 : -1;
-        this.updatePosition(); // A transição será reativada aqui
+        if (direction) {
+            this.currentItemIndex += direction === 'next' ? 1 : -1;
+        }
+        this.updatePosition(true);
         this.resetAutoPlay();
+        setTimeout(() => {
+            this.isTransitioning = false;
+            this.handleTransitionEnd();
+        }, 500);
     }
 
     autoAdvance() {
-        if (this.isTransitioning) return;
+        if (this.isTransitioning || this.isDragging) return;
         this.isTransitioning = true;
         this.currentItemIndex++;
         this.updatePosition();
+        setTimeout(() => {
+            this.isTransitioning = false;
+            this.handleTransitionEnd();
+        }, 500);
     }
 
     updatePosition(animate = true) {
         const itemWidth = this.viewport.offsetWidth / this.itemsPerPage;
         const shiftInPixels = this.currentItemIndex * itemWidth;
-
         this.carousel.style.transition = animate ? 'transform 0.5s ease-in-out' : 'none';
         this.carousel.style.transform = `translateX(-${shiftInPixels}px)`;
-        
         this.updateDots();
     }
 
     startAutoPlay() {
         this.stopAutoPlay();
-        this.autoPlayInterval = setInterval(() => this.autoAdvance(), 4000); // Aumentei um pouco o tempo
+        this.autoPlayInterval = setInterval(() => this.autoAdvance(), 4000);
     }
 
     stopAutoPlay() {
@@ -250,10 +229,7 @@ class PortfolioCarousel {
     debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
+            const later = () => { clearTimeout(timeout); func(...args); };
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
