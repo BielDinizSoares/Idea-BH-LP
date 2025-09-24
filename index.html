@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ideia BH - Convites de Formatura</title>
@@ -169,10 +170,62 @@
         </div>
     </section>
 
-    <!-- Portfolio Section -->
-<section id="portfolio" class="portfolio">
+ <section id="portfolio" class="portfolio">
     <div class="container">
-        <!-- O JavaScript vai renderizar todo o conteúdo aqui -->
+        <div class="section-title">
+            <h2>Confira alguns dos convites que já fizemos</h2>
+        </div>
+
+        <div class="swiper portfolio-swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="portfolio-item">
+                         <div class="portfolio-image"><img src="images/1.png" alt="Convite Clássico Premium" class="portfolio-img" loading="lazy"></div>
+                         <div class="portfolio-content"><h3 class="portfolio-title">Convite Clássico Premium</h3></div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="portfolio-item">
+                         <div class="portfolio-image"><img src="images/2.png" alt="Design Luxo Dourado" class="portfolio-img" loading="lazy"></div>
+                         <div class="portfolio-content"><h3 class="portfolio-title">Design Luxo Dourado</h3></div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="portfolio-item">
+                         <div class="portfolio-image"><img src="images/3.png" alt="Acabamento Premium" class="portfolio-img" loading="lazy"></div>
+                         <div class="portfolio-content"><h3 class="portfolio-title">Acabamento Premium</h3></div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="portfolio-item">
+                         <div class="portfolio-image"><img src="images/4.png" alt="Convite Elegante" class="portfolio-img" loading="lazy"></div>
+                         <div class="portfolio-content"><h3 class="portfolio-title">Convite Elegante</h3></div>
+                    </div>
+                </div>
+                 <div class="swiper-slide">
+                    <div class="portfolio-item">
+                         <div class="portfolio-image"><img src="images/5.png" alt="Papelaria Premium" class="portfolio-img" loading="lazy"></div>
+                         <div class="portfolio-content"><h3 class="portfolio-title">Papelaria Premium</h3></div>
+                    </div>
+                </div>
+                 <div class="swiper-slide">
+                    <div class="portfolio-item">
+                         <div class="portfolio-image"><img src="images/6.png" alt="Tema Formatura" class="portfolio-img" loading="lazy"></div>
+                         <div class="portfolio-content"><h3 class="portfolio-title">Tema Formatura</h3></div>
+                    </div>
+                </div>
+                 
+        </div>
+        <div class="portfolio-nav">
+            <div class="swiper-button-prev"></div>
+            
+            <div class="swiper-pagination"></div>
+
+            <div class="swiper-button-next"></div>
+            </div>
+        </div>
+
+       
     </div>
 </section>
 
@@ -414,7 +467,8 @@
 
         <span class="notification-badge">1</span>
     </a>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script> 
     <script src="script.js"></script>
 </body>
 </html>

@@ -12,218 +12,52 @@ document.querySelectorAll('.nav a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Carrossel de Portfólio 
-document.addEventListener('DOMContentLoaded', function() {
-    const portfolioData = [
-        { id: 1, image: "images/1.png", title: "Convite Clássico Premium" },
-        { id: 2, image: "images/2.png", title: "Design Luxo Dourado" },
-        { id: 3, image: "images/3.png", title: "Acabamento Premium" },
-        { id: 4, image: "images/4.png", title: "Convite Elegante" },
-        { id: 5, image: "images/5.png", title: "Papelaria Premium" },
-        { id: 6, image: "images/6.png", title: "Tema Formatura" },
-    ];
 
-    if (document.getElementById('portfolio')) {
-        new PortfolioCarousel('portfolio', portfolioData);
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.portfolio-swiper')) {
+        const swiper = new Swiper('.portfolio-swiper', {
+            loop: true,
+            centeredSlides: true,
+
+            autoplay: {
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+            },
+
+            slidesPerView: 1,
+            spaceBetween: 10,
+            
+           
+            grabCursor: true,
+
+            breakpoints: {
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 20
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 30,
+                    
+                   
+                    simulateTouch: false, 
+                    grabCursor: false,    
+                }
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
     }
 });
-
-class PortfolioCarousel {
-    constructor(containerId, data) {
-        this.container = document.getElementById(containerId).querySelector('.container');
-        if (!this.container) return;
-        this.originalData = data;
-        this.originalDataLength = this.originalData.length;
-        this.currentItemIndex = 0;
-        this.isTransitioning = false;
-        this.touchStartX = 0;
-        this.touchStartY = 0;
-        this.isDragging = false;
-        this.dragThreshold = 50;
-        this.itemsPerPage = this.getItemsPerPage();
-        this.transitionEndTimeout = null;
-        this.init();
-        window.addEventListener('resize', this.debounce(() => this.handleResize(), 250));
-    }
-
-    init() {
-        this.data = [...this.originalData, ...this.originalData, ...this.originalData];
-        this.currentItemIndex = this.originalDataLength;
-        this.render();
-        this.bindEvents();
-        this.updatePosition(false);
-        this.startAutoPlay();
-    }
-    
-    handleResize() {
-        const newItemsPerPage = this.getItemsPerPage();
-        if (newItemsPerPage !== this.itemsPerPage) {
-            this.itemsPerPage = newItemsPerPage;
-            this.stopAutoPlay();
-            this.init();
-        }
-    }
-
-    getItemsPerPage() {
-        if (window.innerWidth < 768) return 1;
-        if (window.innerWidth < 1024) return 2;
-        return 3;
-    }
-
-    render() {
-        const carouselHTML = `
-            <div class="section-title"><h2>Confira alguns dos convites que já fizemos</h2></div>
-            <div class="portfolio-carousel-container" id="portfolio-viewport">
-                <div class="portfolio-carousel" id="portfolioCarousel">
-                    ${this.data.map((item, index) => `
-                        <div class="portfolio-item" data-id="${item.id}-${index}">
-                            <div class="portfolio-image"><img src="${item.image}" alt="${item.title}" class="portfolio-img" loading="lazy"></div>
-                            <div class="portfolio-content"><h3 class="portfolio-title">${item.title}</h3></div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="portfolio-nav">
-                    <button class="nav-btn" id="prevBtn" aria-label="Slide anterior"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg></button>
-                    <div class="nav-dots" id="navDots">${this.originalData.map((_, index) => `<button class="nav-dot" data-index="${index}" aria-label="Ir para slide ${index + 1}"></button>`).join('')}</div>
-                    <button class="nav-btn" id="nextBtn" aria-label="Próximo slide"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"></polyline></svg></button>
-                </div>
-            </div>`;
-        this.container.innerHTML = carouselHTML;
-        this.carousel = document.getElementById('portfolioCarousel');
-        this.viewport = document.getElementById('portfolio-viewport');
-        this.dots = this.container.querySelectorAll('.nav-dot');
-        this.prevBtn = document.getElementById('prevBtn');
-        this.nextBtn = document.getElementById('nextBtn');
-    }
-
-    bindEvents() {
-        this.prevBtn.addEventListener('click', () => this.moveSlide('prev'));
-        this.nextBtn.addEventListener('click', () => this.moveSlide('next'));
-        this.carousel.addEventListener('transitionend', () => this.handleTransitionEnd());
-        this.dots.forEach(dot => {
-            dot.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                this.goToSlide(index);
-            });
-        });
-        this.addTouchSupport();
-    }
-
-    addTouchSupport() {
-        if (this.itemsPerPage > 1) return;
-        this.carousel.addEventListener('touchstart', (e) => this.handleTouchStart(e));
-        this.carousel.addEventListener('touchmove', (e) => this.handleTouchMove(e));
-        this.carousel.addEventListener('touchend', (e) => this.handleTouchEnd(e));
-    }
-
-    handleTouchStart(e) {
-        this.isDragging = true;
-        this.touchStartX = e.touches[0].clientX;
-        this.touchStartY = e.touches[0].clientY;
-        this.carousel.style.transition = 'none'; 
-        this.stopAutoPlay();
-    }
-
-    handleTouchMove(e) {
-        if (!this.isDragging) return;
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        const diffX = Math.abs(currentX - this.touchStartX);
-        const diffY = Math.abs(currentY - this.touchStartY);
-
-        if (diffX > diffY) {
-            e.preventDefault();
-            const dragDistance = currentX - this.touchStartX;
-            const currentTranslate = -(this.currentItemIndex * this.viewport.offsetWidth);
-            this.carousel.style.transform = `translateX(${currentTranslate + dragDistance}px)`;
-        }
-    }
-
-    handleTouchEnd(e) {
-        if (!this.isDragging) return;
-        this.isDragging = false;
-        const touchEndX = e.changedTouches[0].clientX;
-        const dragDistance = touchEndX - this.touchStartX;
-        if (Math.abs(dragDistance) > this.dragThreshold) {
-            if (dragDistance < 0) this.moveSlide('next');
-            else this.moveSlide('prev');
-        } else {
-            this.updatePosition(true);
-        }
-        this.startAutoPlay();
-    }
-
-    handleTransitionEnd() {
-        this.isTransitioning = false;
-        if (this.currentItemIndex >= this.originalDataLength * 2) {
-            this.currentItemIndex -= this.originalDataLength;
-            this.updatePosition(false);
-        }
-        if (this.currentItemIndex < this.originalDataLength) {
-            this.currentItemIndex += this.originalDataLength;
-            this.updatePosition(false);
-        }
-    }
-
-    updateDots() {
-        const activeDotIndex = this.currentItemIndex % this.originalDataLength;
-        this.dots.forEach((dot, index) => dot.classList.toggle('active', index === activeDotIndex));
-    }
-
-    goToSlide(index) {
-        if (this.isTransitioning) return;
-        this.currentItemIndex = index + this.originalDataLength;
-        this.moveSlide();
-    }
-
-    moveSlide(direction) {
-        if (this.isTransitioning) return;
-        this.isTransitioning = true;
-        if (direction) this.currentItemIndex += direction === 'next' ? 1 : -1;
-        this.updatePosition(true);
-        this.resetAutoPlay();
-        clearTimeout(this.transitionEndTimeout);
-        this.transitionEndTimeout = setTimeout(() => {
-            if (this.isTransitioning) this.handleTransitionEnd();
-        }, 500);
-    }
-
-    autoAdvance() {
-        if (this.isTransitioning || this.isDragging) return;
-        this.moveSlide('next');
-    }
-
-    updatePosition(animate = true) {
-        const itemWidth = this.viewport.offsetWidth / this.itemsPerPage;
-        const shiftInPixels = this.currentItemIndex * itemWidth;
-        this.carousel.style.transition = animate ? 'transform 0.5s ease-in-out' : 'none';
-        this.carousel.style.transform = `translateX(-${shiftInPixels}px)`;
-        this.updateDots();
-    }
-
-    startAutoPlay() {
-        this.stopAutoPlay();
-        this.autoPlayInterval = setInterval(() => this.autoAdvance(), 4000);
-    }
-
-    stopAutoPlay() {
-        clearInterval(this.autoPlayInterval);
-    }
-
-    resetAutoPlay() {
-        this.stopAutoPlay();
-        this.startAutoPlay();
-    }
-
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => { clearTimeout(timeout); func(...args); };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-}
 
 // Form submission
 document.addEventListener('DOMContentLoaded', function() {

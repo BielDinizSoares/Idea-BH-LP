@@ -982,3 +982,83 @@ body {
         font-size: 11px; 
     }
 }
+
+
+/* Estilo para as setas (você pode customizar como quiser) */
+.swiper-button-next,
+.swiper-button-prev {
+    color: var(--brand-red); /* Usa a cor da sua marca */
+}
+
+/* Estilo para as bolinhas de paginação */
+.swiper-pagination-bullet {
+    background: var(--text-gray-400);
+    opacity: 1;
+}
+
+.swiper-pagination-bullet-active {
+    background: var(--brand-red);
+}
+
+
+.swiper {
+    position: relative;
+    padding: 0 40px;
+}
+
+/* Estilo geral para ambos os botões (próximo e anterior) */
+.swiper-button-next,
+.swiper-button-prev {
+    /* Posicionamento */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+
+    /* Tamanho e aparência */
+    width: 44px;
+    height: 44px;
+    background-color: var(--bg-white);
+    border: 2px solid var(--brand-red);
+    border-radius: 50%; /* Deixa o botão redondo */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /* Efeitos */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background-color: var(--brand-red);
+}
+
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 1rem; 
+    font-weight: bold;
+    color: var(--brand-red); 
+    transition: color 0.3s ease;
+}
+
+.swiper-button-next:hover::after,
+.swiper-button-prev:hover::after {
+    color: var(--bg-white);
+}
+
+.swiper-button-prev {
+    left: 10px; 
+}
+
+.swiper-button-next {
+    right: 10px;
+}
+
+
+@media (max-width: 767px) {
+    .swiper-button-prev,
+    .swiper-button-next {
+        display: none;
+    }
+}
