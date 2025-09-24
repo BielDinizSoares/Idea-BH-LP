@@ -321,14 +321,13 @@
                             <input type="tel" required placeholder="(31) 99999-9999" class="form-input" id="form-whatsapp">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Quantidade estimada</label>
+                            <label class="form-label">Quantidade de formandos</label>
                             <select class="form-input" id="form-quantidade">
-                                <option value="N/A">Selecione a quantidade</option>
-                                <option value="50-100">50 a 100 convites</option>
-                                <option value="100-200">100 a 200 convites</option>
-                                <option value="200-300">200 a 300 convites</option>
-                                <option value="300-500">300 a 500 convites</option>
-                                <option value="500+">Mais de 500 convites</option>
+                                <option value="N/A">Selecione a quantidade de formandos</option>
+                                <option value="50-100">Turma com 10 formandos (mínimo)</option>
+                                <option value="100-200">Turma com 10 a 20 formandos</option>
+                                <option value="200-300">Turma com 20 a 30 formandos</option>
+                                <option value="300-500">Turma com 30+ formandos</option>
                             </select>
                         </div>
                     </div>
@@ -346,7 +345,12 @@
 
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label class="form-label">Data prevista da formatura</label>
-                        <input type="date" class="form-input" id="form-data">
+                        <select name="form-input" id="form-data" class="form-input">
+                            <option value="N/A">Selecione a data prevista da formatura</option>
+                            <option value="2025-12-15">2026 - Primeiro semestre</option>
+                            <option value="2025-12-16">2026 - Segundo semestre</option>
+                            <option value="2025-12-17">Após 2027</option>
+                        </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 1.5rem;">

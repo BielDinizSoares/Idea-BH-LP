@@ -1,4 +1,4 @@
-// Smooth scrolling for navigation links (versão corrigida)
+// Smooth scrolling for navigation links 
 document.querySelectorAll('.nav a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -12,7 +12,7 @@ document.querySelectorAll('.nav a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Carrossel de Portfólio (NOVA VERSÃO COM LÓGICA DE PÁGINAS)
+// Carrossel de Portfólio 
 document.addEventListener('DOMContentLoaded', function() {
     const portfolioData = [
         { id: 1, image: "images/1.png", title: "Convite Clássico Premium" },
@@ -38,16 +38,19 @@ class PortfolioCarousel {
         this.currentItemIndex = 0;
         this.isTransitioning = false;
 
+        // --- NOVO: Variáveis para controlar o swipe ---
+        this.touchStartX = 0;
+        this.touchMoveX = 0;
+        this.isDragging = false;
+        this.dragThreshold = 50; // Mínimo de pixels para considerar um swipe
+
         this.init();
         window.addEventListener('resize', this.debounce(() => this.rebuild(), 250));
     }
 
     init() {
         this.itemsPerPage = this.getItemsPerPage();
-        
-        
         this.data = [...this.originalData, ...this.originalData, ...this.originalData];
-        
         this.currentItemIndex = this.originalDataLength;
 
         this.render();
@@ -121,16 +124,70 @@ class PortfolioCarousel {
 
         this.container.addEventListener('mouseenter', () => this.stopAutoPlay());
         this.container.addEventListener('mouseleave', () => this.startAutoPlay());
+        
+        // --- NOVO: Adiciona os eventos de toque ---
+        this.addTouchSupport();
     }
+
+    // --- NOVO: Método inteiro para o swipe ---
+    addTouchSupport() {
+        // Só adiciona a função de swipe se for mobile (1 item por página)
+        if (this.itemsPerPage > 1) return;
+
+        this.carousel.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+        this.carousel.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+        this.carousel.addEventListener('touchend', () => this.handleTouchEnd());
+    }
+
+    handleTouchStart(e) {
+        this.isDragging = true;
+        this.touchStartX = e.touches[0].clientX;
+        this.carousel.style.transition = 'none'; // Remove a transição para o arraste ser suave
+        this.stopAutoPlay();
+    }
+
+    handleTouchMove(e) {
+        if (!this.isDragging) return;
+        
+        this.touchMoveX = e.touches[0].clientX;
+        const dragDistance = this.touchMoveX - this.touchStartX;
+        
+        // Calcula a posição atual e move o carrossel junto com o dedo
+        const currentTranslate = - (this.currentItemIndex * this.viewport.offsetWidth);
+        this.carousel.style.transform = `translateX(${currentTranslate + dragDistance}px)`;
+    }
+
+    handleTouchEnd() {
+        if (!this.isDragging) return;
+
+        const dragDistance = this.touchMoveX - this.touchStartX;
+        this.isDragging = false;
+        
+        // Se o arraste foi maior que o limite (threshold)
+        if (Math.abs(dragDistance) > this.dragThreshold) {
+            if (dragDistance < 0) {
+                // Arrastou para a esquerda -> próximo slide
+                this.moveSlide('next');
+            } else {
+                // Arrastou para a direita -> slide anterior
+                this.moveSlide('prev');
+            }
+        } else {
+            // Se o arraste foi muito curto, volta para a posição original
+            this.updatePosition(true);
+        }
+
+        // Reinicia o autoplay somente quando o usuário solta o dedo
+        this.startAutoPlay();
+    }
+    // --- FIM DOS MÉTODOS DE SWIPE ---
 
     handleTransitionEnd() {
         this.isTransitioning = false;
-        // Se chegamos no bloco de clones do fim, pulamos para o item correspondente no bloco do meio.
         if (this.currentItemIndex >= this.originalDataLength * 2) {
             this.currentItemIndex -= this.originalDataLength;
             this.updatePosition(false);
         }
-        // Se chegamos no bloco de clones do início, pulamos para o item correspondente no bloco do meio.
         if (this.currentItemIndex < this.originalDataLength) {
             this.currentItemIndex += this.originalDataLength;
             this.updatePosition(false);
@@ -155,7 +212,7 @@ class PortfolioCarousel {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
         this.currentItemIndex += direction === 'next' ? 1 : -1;
-        this.updatePosition();
+        this.updatePosition(); // A transição será reativada aqui
         this.resetAutoPlay();
     }
 
@@ -178,7 +235,7 @@ class PortfolioCarousel {
 
     startAutoPlay() {
         this.stopAutoPlay();
-        this.autoPlayInterval = setInterval(() => this.autoAdvance(), 2500);
+        this.autoPlayInterval = setInterval(() => this.autoAdvance(), 4000); // Aumentei um pouco o tempo
     }
 
     stopAutoPlay() {
