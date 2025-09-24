@@ -1,4 +1,5 @@
-/* Reset CSS */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;300;400;500&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -850,6 +851,8 @@ body {
     /* Efeito de transição suave */
     transition: transform 0.3s ease;
     text-decoration: none; /* Remove sublinhado do link */
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 .whatsapp-float:hover {
@@ -860,6 +863,7 @@ body {
     width: 35px;
     height: 35px;
     fill: #fff; /* Cor do ícone */
+    pointer-events: none;
 }
 
 /* Estilo da notificação vermelha */
@@ -878,11 +882,9 @@ body {
     align-items: center;
     justify-content: center;
     border: 2px solid white;
-
-   
     animation: bounce-subtle 2s infinite ease-in-out;
+    pointer-events: none;
 }
-
 
 @keyframes bounce-subtle {
     0%, 100% {
@@ -907,12 +909,12 @@ body {
     width: max-content; 
     text-align: left;
     
-
     visibility: hidden;
     opacity: 0;
     transform: translateX(10px);
     
     transition: all 0.3s ease;
+    pointer-events: none;
 }
 
 .tooltip-text strong {
@@ -937,5 +939,46 @@ body {
 @media (max-width: 768px) {
     .tooltip-text {
         display: none;
+    }
+    
+    .whatsapp-float {
+        width: 60px;    /* Reduzido de 100px para 60px */
+        height: 60px;   /* Reduzido de 100px para 60px */
+        bottom: 15px;   /* Menos espaço da borda */
+        right: 15px;    /* Menos espaço da borda */
+    }
+    
+    .whatsapp-icon {
+        width: 28px;    /* Reduzido de 35px para 28px */
+        height: 28px;   /* Reduzido de 35px para 28px */
+    }
+    
+    .notification-badge {
+        width: 18px;    /* Reduzido de 24px para 18px */
+        height: 18px;   /* Reduzido de 24px para 18px */
+        font-size: 12px; /* Reduzido de 14px para 12px */
+        top: -3px;      /* Ajustado para o novo tamanho */
+        right: -3px;    
+    }
+}
+
+
+@media (max-width: 480px) {
+    .whatsapp-float {
+        width: 55px;    
+        height: 55px;   
+        bottom: 12px;   
+        right: 12px;    
+    }
+    
+    .whatsapp-icon {
+        width: 26px;    
+        height: 26px;   
+    }
+    
+    .notification-badge {
+        width: 16px;    
+        height: 16px;   
+        font-size: 11px; 
     }
 }

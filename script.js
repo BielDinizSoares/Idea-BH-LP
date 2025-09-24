@@ -37,14 +37,16 @@ class PortfolioCarousel {
         this.currentItemIndex = 0;
         this.isTransitioning = false;
         this.touchStartX = 0;
+        this.touchStartY = 0;
         this.isDragging = false;
         this.dragThreshold = 50;
+        this.itemsPerPage = this.getItemsPerPage();
+        this.transitionEndTimeout = null;
         this.init();
-        window.addEventListener('resize', this.debounce(() => this.rebuild(), 250));
+        window.addEventListener('resize', this.debounce(() => this.handleResize(), 250));
     }
 
     init() {
-        this.itemsPerPage = this.getItemsPerPage();
         this.data = [...this.originalData, ...this.originalData, ...this.originalData];
         this.currentItemIndex = this.originalDataLength;
         this.render();
@@ -53,9 +55,13 @@ class PortfolioCarousel {
         this.startAutoPlay();
     }
     
-    rebuild() {
-        this.stopAutoPlay();
-        this.init();
+    handleResize() {
+        const newItemsPerPage = this.getItemsPerPage();
+        if (newItemsPerPage !== this.itemsPerPage) {
+            this.itemsPerPage = newItemsPerPage;
+            this.stopAutoPlay();
+            this.init();
+        }
     }
 
     getItemsPerPage() {
@@ -66,32 +72,20 @@ class PortfolioCarousel {
 
     render() {
         const carouselHTML = `
-            <div class="section-title">
-                <h2>Confira alguns dos convites que já fizemos</h2>
-            </div>
+            <div class="section-title"><h2>Confira alguns dos convites que já fizemos</h2></div>
             <div class="portfolio-carousel-container" id="portfolio-viewport">
                 <div class="portfolio-carousel" id="portfolioCarousel">
                     ${this.data.map((item, index) => `
                         <div class="portfolio-item" data-id="${item.id}-${index}">
-                            <div class="portfolio-image">
-                                <img src="${item.image}" alt="${item.title}" class="portfolio-img" loading="lazy">
-                            </div>
-                            <div class="portfolio-content">
-                                <h3 class="portfolio-title">${item.title}</h3>
-                            </div>
+                            <div class="portfolio-image"><img src="${item.image}" alt="${item.title}" class="portfolio-img" loading="lazy"></div>
+                            <div class="portfolio-content"><h3 class="portfolio-title">${item.title}</h3></div>
                         </div>
                     `).join('')}
                 </div>
                 <div class="portfolio-nav">
-                    <button class="nav-btn" id="prevBtn" aria-label="Slide anterior">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg>
-                    </button>
-                    <div class="nav-dots" id="navDots">
-                        ${this.originalData.map((_, index) => `<button class="nav-dot" data-index="${index}" aria-label="Ir para slide ${index + 1}"></button>`).join('')}
-                    </div>
-                    <button class="nav-btn" id="nextBtn" aria-label="Próximo slide">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"></polyline></svg>
-                    </button>
+                    <button class="nav-btn" id="prevBtn" aria-label="Slide anterior"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg></button>
+                    <div class="nav-dots" id="navDots">${this.originalData.map((_, index) => `<button class="nav-dot" data-index="${index}" aria-label="Ir para slide ${index + 1}"></button>`).join('')}</div>
+                    <button class="nav-btn" id="nextBtn" aria-label="Próximo slide"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"></polyline></svg></button>
                 </div>
             </div>`;
         this.container.innerHTML = carouselHTML;
@@ -125,29 +119,34 @@ class PortfolioCarousel {
     handleTouchStart(e) {
         this.isDragging = true;
         this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
         this.carousel.style.transition = 'none'; 
         this.stopAutoPlay();
     }
 
     handleTouchMove(e) {
         if (!this.isDragging) return;
-        const touchMoveX = e.touches[0].clientX;
-        const dragDistance = touchMoveX - this.touchStartX;
-        const currentTranslate = -(this.currentItemIndex * this.viewport.offsetWidth);
-        this.carousel.style.transform = `translateX(${currentTranslate + dragDistance}px)`;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const diffX = Math.abs(currentX - this.touchStartX);
+        const diffY = Math.abs(currentY - this.touchStartY);
+
+        if (diffX > diffY) {
+            e.preventDefault();
+            const dragDistance = currentX - this.touchStartX;
+            const currentTranslate = -(this.currentItemIndex * this.viewport.offsetWidth);
+            this.carousel.style.transform = `translateX(${currentTranslate + dragDistance}px)`;
+        }
     }
 
     handleTouchEnd(e) {
         if (!this.isDragging) return;
+        this.isDragging = false;
         const touchEndX = e.changedTouches[0].clientX;
         const dragDistance = touchEndX - this.touchStartX;
-        this.isDragging = false;
         if (Math.abs(dragDistance) > this.dragThreshold) {
-            if (dragDistance < 0) {
-                this.moveSlide('next');
-            } else {
-                this.moveSlide('prev');
-            }
+            if (dragDistance < 0) this.moveSlide('next');
+            else this.moveSlide('prev');
         } else {
             this.updatePosition(true);
         }
@@ -168,9 +167,7 @@ class PortfolioCarousel {
 
     updateDots() {
         const activeDotIndex = this.currentItemIndex % this.originalDataLength;
-        this.dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === activeDotIndex);
-        });
+        this.dots.forEach((dot, index) => dot.classList.toggle('active', index === activeDotIndex));
     }
 
     goToSlide(index) {
@@ -182,26 +179,18 @@ class PortfolioCarousel {
     moveSlide(direction) {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
-        if (direction) {
-            this.currentItemIndex += direction === 'next' ? 1 : -1;
-        }
+        if (direction) this.currentItemIndex += direction === 'next' ? 1 : -1;
         this.updatePosition(true);
         this.resetAutoPlay();
-        setTimeout(() => {
-            this.isTransitioning = false;
-            this.handleTransitionEnd();
+        clearTimeout(this.transitionEndTimeout);
+        this.transitionEndTimeout = setTimeout(() => {
+            if (this.isTransitioning) this.handleTransitionEnd();
         }, 500);
     }
 
     autoAdvance() {
         if (this.isTransitioning || this.isDragging) return;
-        this.isTransitioning = true;
-        this.currentItemIndex++;
-        this.updatePosition();
-        setTimeout(() => {
-            this.isTransitioning = false;
-            this.handleTransitionEnd();
-        }, 500);
+        this.moveSlide('next');
     }
 
     updatePosition(animate = true) {
